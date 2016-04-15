@@ -3,7 +3,10 @@ fileenc-openssl
 
 This code allows one to easily encrypt and decrypt files symmetrically using openssl and python3.
 
-Uses ``aes-256-cbc`` for file encryption, with salt, ``sha256`` key stretching and ``sha256`` checksum.
+* Uses ``aes-256-cbc`` for file encryption (as implemented by openssl)
+* Uses a salt when encrypting (to avoid pre-computation or rainbow tables).
+* Uses ``sha256`` key stretching (with <0.1s) to make brute force prohibitively expensive.
+* Uses ``sha256`` checksum to check file integrity.
 
 Installation
 ---------------------------------------
