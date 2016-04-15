@@ -25,6 +25,7 @@ From command line:
 
 	fileenc --key 'password123' --input '*.png' --check --overwrite
 	filedec --key 'password123' --input '*.png.enc' --check --overwrite --remove
+	# the quotes around wildcards are important
 
 From python:
 
@@ -65,5 +66,7 @@ Future
 
 * Multiprocessing for multiple files
 * Faster checksum algorithm?
+* Allow to view files in a temporary (RAM?) disk
+* Use shredding to remove raw files
 
 
