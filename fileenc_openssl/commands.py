@@ -53,13 +53,13 @@ def handle_cmds(args):
 	if not key:
 		try:
 			key = getpass(prompt='key: ')
+			key_repeat = getpass(prompt='repeat: ')
+			assert key == key_repeat
 		except KeyboardInterrupt:
 			print('aborted')
 			exit(1)
-
 	try:
 		stretched_key = stretch_key(key)
-		del key, args.key
 
 		for file in files:
 			tmp_pth = join(args.outp, '{0:s}.tmp'.format(file))
