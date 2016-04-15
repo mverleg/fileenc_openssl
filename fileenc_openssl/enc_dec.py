@@ -4,8 +4,7 @@ from base64 import urlsafe_b64encode
 from hashlib import sha256
 from os import SEEK_END
 from re import match
-from fileenc_openssl import file_hash
-from fileenc_openssl.misc import check_prereq, EncryptionError
+from .misc import check_prereq, EncryptionError, file_hash
 
 
 check_prereq()

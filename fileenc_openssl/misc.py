@@ -1,6 +1,5 @@
 
 from distutils.spawn import find_executable
-from random import getrandbits
 from sys import version_info
 from subprocess import Popen, PIPE
 from hashlib import sha256
