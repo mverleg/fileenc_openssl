@@ -1,6 +1,7 @@
 
 from argparse import ArgumentParser
 from filecmp import cmp
+from getpass import getpass
 from glob import glob
 from os import getpid, remove
 from tempfile import gettempdir
@@ -17,8 +18,8 @@ check_prereq()
 def handle_cmds(args):
 	parser = ArgumentParser(description='encrypt and decrypt files')
 
-	parser.add_argument('-k', '--key', dest='key', action='store', type=str, required=True,
-		help='the key to use for encryption')
+	parser.add_argument('-k', '--key', dest='key', action='store', type=str, default=None,
+		help='the key to use for encryption; you will be prompted for one if this is not provided (more secure)')
 	parser.add_argument('-i', '--input', dest='inp', action='store', type=str, required=True,
 		help='input file, directory or pattern (as a single string) (.enc will be appended)')
 	parser.add_argument('-o', '--output', dest='outp', action='store', type=str, default='',
@@ -34,14 +35,26 @@ def handle_cmds(args):
 
 	args = parser.parse_args(args)
 
+	if args.test and not args.encrypt:
+		print('--check ignored for decryption')
+
 	files = glob(args.inp)
 	if not files:
 		stderr.write('no files found that match "{0:s}"\n'.format(args.inp))
 		exit(1)
 
-	stretched_key = stretch_key(args.key)
+	key = args.key
+	if not key:
+		try:
+			key = getpass(prompt='key: ')
+		except KeyboardInterrupt:
+			print('aborted')
+			exit(1)
 
 	try:
+		stretched_key = stretch_key(key)
+		del key, args.key
+
 		for file in files:
 			tmp_pth = join(args.outp, '{0:s}.tmp'.format(file))
 			if args.encrypt:
@@ -56,29 +69,25 @@ def handle_cmds(args):
 				if args.overwrite:
 					remove(to_file)
 				else:
-					raise IOError('a file exists at the target destination "{0:s}" (use --overwrite/-f to overwrite it)'
-						.format(to_file))
+					raise IOError(('a file exists at the target destination "{0:s}" '
+						'(use --overwrite/-f to overwrite it)').format(to_file))
 			if args.test:
 				check_pth = join(gettempdir(), 'endfile-check-{0:d}.tmp'.format(getpid()))
 				if args.encrypt:
 					decrypt_file(tmp_pth, rawpth=check_pth, key=stretched_key)
-				# else:
-				# 	encrypt_file(tmp_pth, encpth=check_pth, key=stretched_key)
 					if cmp(file, check_pth):
 						print(' tested', file)
 					else:
 						raise EncryptionError('checking "{0:s}" with --check did not yield identical file ("{1:s}")'
 							.format(file, check_pth))
 					remove(check_pth)
-				else:
-					print('--check ignored for decryption')
 			move(tmp_pth, to_file)
 			if args.remove:
 				print(' removing', file)
 				remove(file)
 	except (EncryptionError, IOError) as err:
-		stderr.write('encrypt/decrypt error!\n')
-		stderr.write(str(err))
+		# stderr.write('encrypt/decrypt error!\n')
+		stderr.write(str(err) + '\n')
 		exit(2)
 
 

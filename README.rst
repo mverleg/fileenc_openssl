@@ -3,7 +3,7 @@ fileenc-openssl
 
 This code allows one to easily encrypt and decrypt files symmetrically using openssl and python3.
 
-Uses ``aes-256-cbc`` for file encryption, with salt, sha256 key stretching and sha256 checksum.
+Uses ``aes-256-cbc`` for file encryption, with salt, ``sha256`` key stretching and ``sha256`` checksum.
 
 Installation
 ---------------------------------------
@@ -45,7 +45,7 @@ Options
 You can find all options using ``fileenc --help``::
 
 	-h, --help              show this help message and exit
-	-k KEY, --key KEY       the key to use for encryption
+	-k KEY, --key KEY       the key to use for encryption; you will be prompted for one if this is not provided (more secure)
 	-i INP, --input INP     input file, directory or pattern (as a single string) (.enc will be appended)
 	-o OUTP, --output OUTP  optionally, output file or directory (.enc will be stripped if available)
 	-d, --decrypt           decrypt the input file(s) (as opposed to encrypt,	which is the default)
