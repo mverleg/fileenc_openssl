@@ -61,12 +61,4 @@ License
 
 Revised BSD License; at your own risk, you can mostly do whatever you want with this code, just don't use my name for promotion and do keep the license file.
 
-Future
----------------------------------------
-
-* Multiprocessing for multiple files
-* Faster checksum algorithm?
-* Allow to view files in a temporary (RAM?) disk
-* Use shredding to remove raw files
-
 
