@@ -16,7 +16,8 @@ check_prereq()
 
 
 def handle_cmds(args):
-	parser = ArgumentParser(description='encrypt and decrypt files')
+	parser = ArgumentParser(prog='fileenc', description='Encrypt and decrypt files by pattern.',
+		epilog='Note: `filedec` is the same as `fileenc -d` ; Info at https://github.com/mverleg/fileenc_openssl')
 
 	parser.add_argument('-k', '--key', dest='key', action='store', type=str, default=None,
 		help='the key to use for encryption; you will be prompted for one if this is not provided (more secure)')
@@ -30,7 +31,7 @@ def handle_cmds(args):
 		help='overwrite existing files when decrypting (encrypting always overwrites)')
 	parser.add_argument('-r', '--remove', dest='remove', action='store_true',
 		help='remove the input file after en/decrypting (after --check)')
-	parser.add_argument('-t', '--check', dest='test', action='store_true',
+	parser.add_argument('-c', '--check', dest='test', action='store_true',
 		help='test the encryption by reversing it (abort on failure) (only for ENcryption due to salting)')
 
 	args = parser.parse_args(args)
@@ -66,7 +67,7 @@ def handle_cmds(args):
 				to_file = join(args.outp, (file[:-4] if file.endswith('.enc') else file))
 				print(to_file, '<-', file)
 			if isfile(to_file):
-				if args.overwrite:
+				if args.overwrite or args.encrypt:
 					remove(to_file)
 				else:
 					raise IOError(('a file exists at the target destination "{0:s}" '

@@ -48,10 +48,10 @@ You can find all options using ``fileenc --help``::
 	-k KEY, --key KEY       the key to use for encryption; you will be prompted for one if this is not provided (more secure)
 	-i INP, --input INP     input file, directory or pattern (as a single string) (.enc will be appended)
 	-o OUTP, --output OUTP  optionally, output file or directory (.enc will be stripped if available)
-	-d, --decrypt           decrypt the input file(s) (as opposed to encrypt,	which is the default)
+	-d, --decrypt           decrypt the input file(s) (as opposed to encrypt, which is the default)
 	-f, --overwrite         overwrite existing files when decrypting (encrypting always overwrites)
 	-r, --remove            remove the input file after en/decrypting (after --check)
-	-t, --check             test the encryption/decryption by reversing it (abort on failure)
+	-c, --check             test the encryption by reversing it (abort on failure) (only for ENcryption due to salting)
 
 License
 ---------------------------------------
