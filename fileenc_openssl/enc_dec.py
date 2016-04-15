@@ -1,16 +1,17 @@
 
-from os import SEEK_END
+from subprocess import Popen, PIPE
 from base64 import urlsafe_b64encode
 from hashlib import sha256
+from os import SEEK_END
 from re import match
-from subprocess import Popen, PIPE
+from fileenc_openssl import file_hash
 from fileenc_openssl.misc import check_prereq, EncryptionError
 
 
 check_prereq()
 
 
-def stretch_key(key, *, rounds=86198):
+def stretch_key(key, *, rounds=86198):  # python3 required
 	"""
 	Apply a hash to a string for many rounds. The default takes about 0.1s on a simple 2014 CPU,
 	which is probably enough of a deterrent if the key is not terrible.
@@ -25,19 +26,6 @@ def stretch_key(key, *, rounds=86198):
 		shaer.update(binkey)
 		binkey = shaer.digest()
 	return urlsafe_b64encode(binkey).decode('ascii')[:-1]
-
-
-def file_hash(pth):
-	"""
-	Calculate the checksum of a file; return length-40 binary that includes the algorithm.
-	"""
-	shaer = sha256()
-	with open(pth, 'rb') as fh:
-		data = ' '
-		while data:
-			data = fh.read(32768)
-			shaer.update(data)
-	return b'sha256__' + shaer.digest()
 
 
 def encrypt_file(rawpth, *, encpth=None, key):
