@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-"""
-	Adapted from https://hynek.me/articles/sharing-your-labor-of-love-pypi-quick-and-dirty/
-"""
-
+from sys import version_info
 from setuptools import setup
+
+
+if version_info < (3, 0):
+	raise SystemError('fileenc-openssl only works with python3')
 
 
 with open('README.rst', 'r') as fh:
@@ -20,7 +21,7 @@ setup(
 	author_email='mdilligaf@gmail.com',
 	license='Revised BSD License (LICENSE.txt)',
 	keywords=['encryption', 'openssl',],
-	version='1.1',
+	version='1.1.1',
 	packages=['fileenc_openssl'],
 	include_package_data=True,
 	zip_safe=False,

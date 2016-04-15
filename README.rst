@@ -14,6 +14,8 @@ You can install using
 
 	pip install fileenc-openssl
 
+If you want ``fileenc`` and ``filedec`` available system-wide, use ``sudo`` or equivalent.
+
 Usage
 ---------------------------------------
 
