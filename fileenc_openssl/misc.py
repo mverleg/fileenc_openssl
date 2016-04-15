@@ -7,6 +7,10 @@ class NoOpenSSLError(ImportError):
 	pass
 
 
+class EncryptionError(Exception):
+	pass
+
+
 def check_prereq():
 	if version_info < (3, 0):
 		raise SystemError('fileenc needs python3')

@@ -1,10 +1,11 @@
 
+from os import SEEK_END
 from base64 import urlsafe_b64encode
 from hashlib import sha256
 from re import match
 from sys import stderr
 from subprocess import Popen, PIPE
-from fileenc_openssl.misc import check_prereq
+from fileenc_openssl.misc import check_prereq, EncryptionError
 
 
 check_prereq()
@@ -27,6 +28,19 @@ def stretch_key(key, *, rounds=86198):
 	return urlsafe_b64encode(binkey).decode('ascii')[:-1]
 
 
+def file_hash(pth):
+	"""
+	Calculate the checksum of a file; return length-40 binary that includes the algorithm.
+	"""
+	shaer = sha256()
+	with open(pth, 'rb') as fh:
+		data = ' '
+		while data:
+			data = fh.read(32768)
+			shaer.update(data)
+	return b'sha256__' + shaer.digest()
+
+
 def encrypt_file(rawpth, *, encpth=None, key):
 	"""
 	Use openssl to encrypt a file using `aes-256` with a salt (no key stretching implicit).
@@ -40,12 +54,15 @@ def encrypt_file(rawpth, *, encpth=None, key):
 	], stdout=PIPE, stderr=PIPE)
 	out, err = proc.communicate()
 	if err:
-		stderr.write('encrypting "{0:s}" failed due to openssl error:\n"{1:s}"'
+		raise EncryptionError('encrypting "{0:s}" failed due to openssl error:\n"{1:s}"'
 			.format(rawpth, err.decode('ascii').strip()))
+	checksum = file_hash(rawpth)
+	with open(encpth, 'ab') as fh:
+		fh.write(b'Checksum_' + checksum)
 	return encpth
 
 
-def decrypt_file(encpth, *, rawpth=None, key, overwrite=True):
+def decrypt_file(encpth, *, rawpth=None, key):
 	"""
 	Reverse of `encrypt_file`.
 	"""
@@ -53,6 +70,12 @@ def decrypt_file(encpth, *, rawpth=None, key, overwrite=True):
 		rawpth = encpth
 		if rawpth.endswith('.enc'):
 			rawpth = rawpth[:-4]
+	with open(encpth, 'rb') as fh:
+		fh.seek(-40, SEEK_END)
+		checksum_found = fh.read()
+	with open(encpth, 'ab') as fh:
+		fh.seek(-49, SEEK_END)
+		fh.truncate()
 	proc = Popen([
 		'openssl', 'aes-256-cbc', '-salt',
 		'-in', encpth, '-out', rawpth,
@@ -62,11 +85,10 @@ def decrypt_file(encpth, *, rawpth=None, key, overwrite=True):
 	if err:
 		stderr.write('decrypting "{0:s}" failed due to openssl error:\n"{1:s}"'
 			.format(encpth, err.decode('ascii').strip()))
+	checksum_decrypted = file_hash(rawpth)
+	if not checksum_found == checksum_decrypted:
+		raise EncryptionError('The decrypted file does not have the same checksum as the original!\n' +
+			' original:  {0:}\n decrypted: {1:}\n'.format(checksum_found, checksum_decrypted))
 	return rawpth
-
-
-# ky = stretch_key('hihihihi"\'`$(hi)`', rounds=100000)
-# ef = encrypt_file('/home/mark/fileenc-openssl/test.txt', key=ky)
-# decrypt_file(ef, key=ky)
 
 
