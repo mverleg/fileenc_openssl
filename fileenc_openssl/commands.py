@@ -32,6 +32,8 @@ def handle_cmds(args):
 		help='shred the input file after en/decrypting (after --check)')
 	parser.add_argument('-c', '--check', dest='test', action='store_true',
 		help='test the encryption by reversing it (abort on failure) (only for ENcryption due to salting)')
+	parser.add_argument('-1', '--once', dest='key_once', action='store_true',
+		help='prompt for the key only once (only applicable if --key and --decrypt are not set)')
 
 	args = parser.parse_args(args)
 
@@ -53,8 +55,9 @@ def handle_cmds(args):
 	if not key:
 		try:
 			key = getpass(prompt='key: ')
-			key_repeat = getpass(prompt='repeat: ')
-			assert key == key_repeat
+			if args.encrypt and not args.key_once:
+				key_repeat = getpass(prompt='repeat: ')
+				assert key == key_repeat
 		except KeyboardInterrupt:
 			print('aborted')
 			exit(1)
