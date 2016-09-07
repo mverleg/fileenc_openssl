@@ -36,7 +36,7 @@ def handle_cmds(args):
 	parser.add_argument('-c', '--check', dest='test', action='store_true',
 		help='test the encryption by reversing it (abort on failure) (only for ENcryption due to salting)')
 	parser.add_argument('-1', '--once', dest='key_once', action='store_true',
-		help='prompt for the key only once (only applicable if --key and --decrypt are not set)')
+		help='prompt for the key only once (when encrypting without -k)')
 	parser.add_argument('-j', '--process-count', dest='proc_cnt', action='store', type=int, required=False, default=0,
 		help='number of parallel processes to use for en/decryption; `0` for auto (default), `1` for serial')
 
