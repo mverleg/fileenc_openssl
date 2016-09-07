@@ -1,15 +1,18 @@
 
 from argparse import ArgumentParser
 from filecmp import cmp
+from functools import partial
 from getpass import getpass
 from glob import glob
+from multiprocessing import cpu_count
+from multiprocessing.pool import Pool
 from os import getpid
 from tempfile import gettempdir
 from shutil import move
 from sys import stderr, argv
 from os.path import join, isfile
 from .enc_dec import stretch_key, encrypt_file, decrypt_file
-from .misc import check_prereq, EncryptionError, overwrite_file, shred_file
+from .misc import check_prereq, EncryptionError, shred_file
 
 check_prereq()
 
@@ -34,6 +37,8 @@ def handle_cmds(args):
 		help='test the encryption by reversing it (abort on failure) (only for ENcryption due to salting)')
 	parser.add_argument('-1', '--once', dest='key_once', action='store_true',
 		help='prompt for the key only once (only applicable if --key and --decrypt are not set)')
+	parser.add_argument('-j', '--process-count', dest='proc_cnt', action='store', type=int, required=False, default=0,
+		help='number of parallel processes to use for en/decryption; `0` for auto (default), `1` for serial')
 
 	args = parser.parse_args(args)
 
@@ -61,43 +66,63 @@ def handle_cmds(args):
 		except KeyboardInterrupt:
 			print('aborted')
 			exit(1)
-	try:
-		stretched_key = stretch_key(key)
-
+	stretched_key = stretch_key(key)
+	
+	proc_cnt = args.proc_cnt
+	if proc_cnt <= 0:
+		proc_cnt = cpu_count()
+		print('using {0:d} process(es)'.format(proc_cnt))
+	if proc_cnt > 8 * cpu_count():
+		proc_cnt = 8 * cpu_count()
+	if proc_cnt == 1:
+		# Treat proc_cnt=1 as really serial, rather than 1 subprocess, because of better error messages this way.
 		for file in files:
-			tmp_pth = join(args.outp, '{0:s}.tmp'.format(file))
-			if args.encrypt:
-				encrypt_file(file, encpth=tmp_pth, key=stretched_key)
-				to_file = join(args.outp, '{0:s}.enc'.format(file))
-				print(file, '->', to_file)
+			do_file(filepth=file, key=stretched_key, outp=args.outp, encrypt=args.encrypt,
+				overwrite=args.overwrite, test=args.test, remove=args.remove)
+	else:
+		lake = Pool(proc_cnt)
+		res = lake.map(partial(do_file, key=stretched_key, outp=args.outp, encrypt=args.encrypt,
+			overwrite=args.overwrite, test=args.test, remove=args.remove), files)
+		if sum(res) > 0:
+			stderr.write('{0:d}/{1:d} files encountered problems and didn\'t complete!'.format(sum(res), len(files)))
+
+
+def do_file(filepth, key, outp, encrypt, overwrite, test, remove):
+	try:
+		tmp_pth = join(outp, '{0:s}.tmp'.format(filepth))
+		if encrypt:
+			encrypt_file(filepth, encpth=tmp_pth, key=key)
+			to_file = join(outp, '{0:s}.enc'.format(filepth))
+			print(filepth, '->', to_file)
+		else:
+			decrypt_file(filepth, rawpth=tmp_pth, key=key)
+			to_file = join(outp, (filepth[:-4] if filepth.endswith('.enc') else filepth))
+			print(to_file, '<-', filepth)
+		if isfile(to_file):
+			if overwrite or encrypt:
+				shred_file(to_file)
 			else:
-				decrypt_file(file, rawpth=tmp_pth, key=stretched_key)
-				to_file = join(args.outp, (file[:-4] if file.endswith('.enc') else file))
-				print(to_file, '<-', file)
-			if isfile(to_file):
-				if args.overwrite or args.encrypt:
-					shred_file(to_file)
+				raise IOError(('a file exists at the target destination "{0:s}" '
+					'(use --overwrite/-f to overwrite it)').format(to_file))
+		if test:
+			check_pth = join(gettempdir(), 'endfile-check-{0:d}.tmp'.format(getpid()))
+			if encrypt:
+				decrypt_file(tmp_pth, rawpth=check_pth, key=key)
+				if cmp(filepth, check_pth):
+					print(' tested', filepth)
 				else:
-					raise IOError(('a file exists at the target destination "{0:s}" '
-						'(use --overwrite/-f to overwrite it)').format(to_file))
-			if args.test:
-				check_pth = join(gettempdir(), 'endfile-check-{0:d}.tmp'.format(getpid()))
-				if args.encrypt:
-					decrypt_file(tmp_pth, rawpth=check_pth, key=stretched_key)
-					if cmp(file, check_pth):
-						print(' tested', file)
-					else:
-						raise EncryptionError('checking "{0:s}" with --check did not yield identical file ("{1:s}")'
-							.format(file, check_pth))
-					shred_file(check_pth)
-			move(tmp_pth, to_file)
-			if args.remove:
-				print(' removing', file)
-				shred_file(file)
+					raise EncryptionError('checking "{0:s}" with --check did not yield identical file ("{1:s}")'
+						.format(filepth, check_pth))
+				shred_file(check_pth)
+		move(tmp_pth, to_file)
+		if remove:
+			print(' removing', filepth)
+			shred_file(filepth)
 	except (EncryptionError, IOError) as err:
 		# stderr.write('encrypt/decrypt error!\n')
 		stderr.write(str(err) + '\n')
-		exit(2)
+		return 1
+	return 0
 
 
 def handle_cmds_encrypt():
