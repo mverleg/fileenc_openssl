@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from sys import version_info
+# from sys import version_info
 from setuptools import setup
 
 
-if version_info < (3, 0):
-	raise SystemError('fileenc-openssl only works with python3')
+# if version_info < (3, 0):
+# 	raise SystemError('fileenc-openssl only works with python3')
 
 
 with open('README.rst', 'r') as fh:
