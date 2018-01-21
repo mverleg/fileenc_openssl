@@ -28,14 +28,14 @@ def file_hash(pth):
 
 
 def check_prereq():
-	if version_info < (3, 0):
-		raise SystemError('fileenc needs python3')
+	# if version_info < (3, 0):
+	# 	raise SystemError('fileenc needs python3')
 	if not find_executable('openssl'):
 		raise NoOpenSSLError('fileenc needs openssl to be installed, but it was not found\n' +
 			'on Ubuntu: sudo apt-get install openssl\notherwise check: https://www.openssl.org/community/binaries.html')
 
 
-def shred_file(pth, *, rounds=3):
+def shred_file(pth, rounds=3):
 	"""
 	Try to shred a file with shred command, otherwise just overwrite it (may not work due to things like buffering).
 	"""
@@ -52,7 +52,7 @@ def shred_file(pth, *, rounds=3):
 	remove(pth)
 
 
-def overwrite_file(pth, *, rounds=3):
+def overwrite_file(pth, rounds=3):
 	"""
 	Custom version of shred, as a fallback.
 	"""

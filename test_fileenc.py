@@ -22,7 +22,7 @@ def test_enc_dec(tmpdir):
 		fh.write(txt)
 	stretched_key = stretch_key('password123')
 	encpth = encrypt_file(rawpth, key=stretched_key)
-	respth = decrypt_file(encpth, rawpth=(rawpth + '.dec'), key=stretched_key)
+	respth = decrypt_file(encpth, key=stretched_key, rawpth=(rawpth + '.dec'))
 	with open(respth, 'r') as fh:
 		assert fh.read() == txt, 'encrypt-decypt did not return the original text\n' \
 			'{0:s}\n{1:s}\n{2:s}'.format(rawpth, encpth, respth)

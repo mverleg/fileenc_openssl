@@ -10,7 +10,7 @@ from .misc import check_prereq, EncryptionError, file_hash
 check_prereq()
 
 
-def stretch_key(key, *, rounds=86198):  # python3 required
+def stretch_key(key, rounds=86198):
 	"""
 	Apply a hash to a string for many rounds. The default takes about 0.1s on a simple 2014 CPU,
 	which is probably enough of a deterrent if the key is not terrible.
@@ -27,7 +27,7 @@ def stretch_key(key, *, rounds=86198):  # python3 required
 	return urlsafe_b64encode(binkey).decode('ascii')[:-1]
 
 
-def encrypt_file(rawpth, *, encpth=None, key):
+def encrypt_file(rawpth, key, encpth=None):
 	"""
 	Use openssl to encrypt a file using `aes-256` with a salt (no key stretching implicit).
 	"""
@@ -48,7 +48,7 @@ def encrypt_file(rawpth, *, encpth=None, key):
 	return encpth
 
 
-def decrypt_file(encpth, *, rawpth=None, key):
+def decrypt_file(encpth, key, rawpth=None):
 	"""
 	Reverse of `encrypt_file`.
 	"""

@@ -67,7 +67,7 @@ def handle_cmds(args):
 			print('aborted')
 			exit(1)
 	stretched_key = stretch_key(key)
-	
+
 	proc_cnt = args.proc_cnt
 	if proc_cnt <= 0:
 		proc_cnt = cpu_count()
@@ -91,11 +91,11 @@ def do_file(filepth, key, outp, encrypt, overwrite, test, remove):
 	try:
 		tmp_pth = join(outp, '{0:s}.tmp'.format(filepth))
 		if encrypt:
-			encrypt_file(filepth, encpth=tmp_pth, key=key)
+			encrypt_file(filepth, key=key, encpth=tmp_pth)
 			to_file = join(outp, '{0:s}.enc'.format(filepth))
 			print(filepth, '->', to_file)
 		else:
-			decrypt_file(filepth, rawpth=tmp_pth, key=key)
+			decrypt_file(filepth, key=key, rawpth=tmp_pth)
 			to_file = join(outp, (filepth[:-4] if filepth.endswith('.enc') else filepth))
 			print(to_file, '<-', filepth)
 		if isfile(to_file):
@@ -107,7 +107,7 @@ def do_file(filepth, key, outp, encrypt, overwrite, test, remove):
 		if test:
 			check_pth = join(gettempdir(), 'endfile-check-{0:d}.tmp'.format(getpid()))
 			if encrypt:
-				decrypt_file(tmp_pth, rawpth=check_pth, key=key)
+				decrypt_file(tmp_pth, key=key, rawpth=check_pth)
 				if cmp(filepth, check_pth):
 					print(' tested', filepth)
 				else:
