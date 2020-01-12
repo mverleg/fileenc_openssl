@@ -8,6 +8,28 @@ This code allows one to easily encrypt and decrypt files symmetrically using ope
 * Uses ``sha256`` key stretching (with <0.1s) to make brute force prohibitively expensive.
 * Uses ``sha256`` checksum to check file integrity.
 
+Version warning
+---------------------------------------
+
+If you've upgraded from openssl 1.0 to openssl 1.1, such as when updating from Ubuntu 16.04 to 18.04, read this!
+
+In a move that's great for security but terrible for backwards compatibility, openssl changed away from md5. This means that files encrypted on old versions don't decrypt on new versions. Instead it'll say::
+
+    "*** WARNING : deprecated key derivation used.
+    Using -iter or -pbkdf2 would be better.
+    bad decrypt
+    ...:digital envelope routines:EVP_DecryptFinal_ex:bad decrypt:../crypto/evp/evp_enc.c:537:"
+    1/1 files encountered problems and didn't complete!
+
+I had no luck using the `-md` flag to openssl, but downgrading openssl works. You can do this `like here`_, or you can use Docker. For Ubuntu 16::
+
+    docker run -v$YOUR_HOST_DATA_DIR:/data -it ubuntu:xenial bash
+    apt-get update && apt-get install python3 python3-pip
+    pip install 'fileenc-openssl==1.3.1'
+    cd /data
+
+Inside that session, you can decrypt all your files. Then encrypt them again on your host OS.
+
 Installation
 ---------------------------------------
 
@@ -92,4 +114,6 @@ License
 
 Revised BSD License; at your own risk, you can mostly do whatever you want with this code, just don't use my name for promotion and do keep the license file.
 
+
+.. _like here: https://askubuntu.com/questions/1067762/unable-to-decrypt-text-files-with-openssl-on-ubuntu-18-04
 
