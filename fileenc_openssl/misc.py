@@ -1,9 +1,8 @@
 
 from distutils.spawn import find_executable
-from sys import version_info
-from subprocess import Popen, PIPE
 from hashlib import sha256
 from os import remove, SEEK_END, SEEK_SET, statvfs, urandom
+from subprocess import Popen, PIPE
 
 
 class NoOpenSSLError(ImportError):

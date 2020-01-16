@@ -7,12 +7,14 @@ from glob import glob
 from multiprocessing import cpu_count
 from multiprocessing.pool import Pool
 from os import getpid
-from tempfile import gettempdir
+from os.path import join, isfile
 from shutil import move
 from sys import stderr, argv
-from os.path import join, isfile
-from .enc_dec import stretch_key, encrypt_file, decrypt_file
-from .misc import check_prereq, EncryptionError, shred_file
+from tempfile import gettempdir
+
+from fileenc_openssl.enc_dec import stretch_key, encrypt_file, decrypt_file
+from fileenc_openssl.misc import check_prereq, EncryptionError, shred_file
+
 
 check_prereq()
 
@@ -44,13 +46,12 @@ def handle_cmds(args):
 
 	if args.test and not args.encrypt:
 		print('--check ignored for decryption')
-
 	if args.inp:
 		files = glob(args.inp)
 	elif not args.encrypt:
 		files = glob('*.enc')
 	else:
-		stderr.write('--input not provided')
+		stderr.write('--input not provided\n')
 		exit(3)
 	if not files:
 		stderr.write('no files found that match "{0:s}"\n'.format(args.inp))
@@ -111,7 +112,7 @@ def do_file(filepth, key, outp, encrypt, overwrite, test, remove):
 				if cmp(filepth, check_pth):
 					print(' tested', filepth)
 				else:
-					raise EncryptionError('checking "{0:s}" with --check did not yield identical file ("{1:s}")'
+					raise EncryptionError('checking "{0:s}" with --check did not yield an identical file ("{1:s}")'
 						.format(filepth, check_pth))
 				shred_file(check_pth)
 		move(tmp_pth, to_file)

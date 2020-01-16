@@ -1,11 +1,12 @@
 
-from subprocess import Popen, PIPE
 from base64 import urlsafe_b64encode
 from hashlib import sha256
 from os import SEEK_END
 from re import match
-from .misc import check_prereq, EncryptionError, file_hash
+from subprocess import Popen, PIPE
+from sys import stderr
 
+from fileenc_openssl.misc import check_prereq, EncryptionError, file_hash
 
 check_prereq()
 
@@ -33,13 +34,16 @@ def encrypt_file(rawpth, key, encpth=None):
 	"""
 	if encpth is None:
 		encpth = '{0:s}.enc'.format(rawpth)
-	proc = Popen([
+	cmd = [
 		'openssl', 'aes-256-cbc', '-salt',
+		'-md', 'sha256'
 		'-in', rawpth, '-out', encpth,
 		'-e', '-k', '{0:s}'.format(key),
-	], stdout=PIPE, stderr=PIPE)
+	]
+	proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
 	out, err = proc.communicate()
 	if err:
+		stderr.write("command failed: {}\n".format(" ".join(cmd)))
 		raise EncryptionError('encrypting "{0:s}" failed due to openssl error:\n"{1:s}"'
 			.format(rawpth, err.decode('ascii').strip()))
 	checksum = file_hash(rawpth)
@@ -64,16 +68,20 @@ def decrypt_file(encpth, key, rawpth=None):
 	with open(encpth, 'ab') as fh:
 		fh.seek(-49, SEEK_END)
 		fh.truncate()
-	proc = Popen([
+	cmd = [
 		'openssl', 'aes-256-cbc', '-salt',
+		'-md', 'sha256'
 		'-in', encpth, '-out', rawpth,
 		'-d', '-k', '{0:s}'.format(key),
-	], stdout=PIPE, stderr=PIPE)
+	]
+	print("command failed: {}".format(" ".join(cmd)))  #TODO @mark: remove this line
+	proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
 	out, err = proc.communicate()
 	with open(encpth, 'ab') as fh:
 		fh.seek(0, SEEK_END)
 		fh.write(b'Checksum_' + checksum_found)
 	if err:
+		stderr.write("command failed: {}\n".format(" ".join(cmd)))
 		raise EncryptionError('decrypting "{0:s}" failed due to openssl error:\n"{1:s}"'
 			.format(encpth, err.decode('ascii').strip()))
 	checksum_decrypted = file_hash(rawpth)
