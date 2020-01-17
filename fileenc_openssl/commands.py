@@ -7,7 +7,7 @@ from glob import glob
 from multiprocessing import cpu_count
 from multiprocessing.pool import Pool
 from os import getpid
-from os.path import join, isfile
+from os.path import join, isfile, isdir
 from shutil import move
 from sys import stderr, argv
 from tempfile import gettempdir
@@ -89,6 +89,7 @@ def handle_cmds(args):
 
 
 def do_file(filepth, key, outp, encrypt, overwrite, test, remove):
+	assert not outp or isdir(outp), "argument to -o should be a directory, but '{}' is not".format(outp)  #TODO @mark: also support filenames? and support making directories?
 	try:
 		tmp_pth = join(outp, '{0:s}.tmp'.format(filepth))
 		if encrypt:

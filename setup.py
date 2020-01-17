@@ -21,7 +21,7 @@ setup(
 	author_email='mdilligaf@gmail.com',
 	license='Revised BSD License (LICENSE.txt)',
 	keywords=['encryption', 'openssl',],
-	version='1.3.1',
+	version='2.0.0',
 	packages=['fileenc_openssl'],
 	include_package_data=True,
 	zip_safe=False,
