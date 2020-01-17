@@ -36,14 +36,15 @@ def encrypt_file(rawpth, key, encpth=None):
 		encpth = '{0:s}.enc'.format(rawpth)
 	cmd = [
 		'openssl', 'aes-256-cbc', '-salt',
-		'-md', 'sha256', '-pbkdf2',
+		'-md', 'sha256', #'-pbkdf2',
 		'-in', rawpth, '-out', encpth,
-		'-e', '--pass', 'pass:{0:s}'.format(key),
+		# '-e', '--pass', 'pass:{0:s}'.format(key),
+		'-e', '-k', key,  #TODO @mark: replace by new style above, when generally supported
 	]
 	proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
 	out, err = proc.communicate()
 	if err:
-		stderr.write("command failed: {}\n".format(" ".join(cmd).replace(key, "$THE_KEY")))
+		stderr.write("command failed: {} $THE_KEY\n".format(" ".join(cmd[:-1])))
 		raise EncryptionError('encrypting "{0:s}" failed due to openssl error:\n"{1:s}"'
 			.format(rawpth, err.decode('ascii').strip()))
 	checksum = file_hash(rawpth)
@@ -70,17 +71,19 @@ def decrypt_file(encpth, key, rawpth=None):
 		fh.truncate()
 	cmd = [
 		'openssl', 'aes-256-cbc', '-salt',
-		'-md', 'sha256', '-pbkdf2',
+		'-md', 'sha256', #'-pbkdf2',
 		'-in', encpth, '-out', rawpth,
-		'-d', '--pass', 'pass:{0:s}'.format(key),
+		# '-d', '--pass', 'pass:{0:s}'.format(key),
+		'-d', '-k', key,  #TODO @mark: replace by new style above, when generally supported
 	]
 	proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+	print(' '.join(cmd))  #TODO @mark: TEMPORARY! REMOVE THIS!
 	out, err = proc.communicate()
 	with open(encpth, 'ab') as fh:
 		fh.seek(0, SEEK_END)
 		fh.write(b'Checksum_' + checksum_found)
 	if err:
-		stderr.write("command failed: {}\n".format(" ".join(cmd).replace(key, "$THE_KEY")))
+		stderr.write("command failed: {} $THE_KEY\n".format(" ".join(cmd[:-1])))
 		raise EncryptionError('decrypting "{0:s}" failed due to openssl error:\n"{1:s}"'
 			.format(encpth, err.decode('ascii').strip()))
 	checksum_decrypted = file_hash(rawpth)

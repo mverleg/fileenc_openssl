@@ -89,7 +89,8 @@ def handle_cmds(args):
 
 
 def do_file(filepth, key, outp, encrypt, overwrite, test, remove):
-	assert not outp or isdir(outp), "argument to -o should be a directory, but '{}' is not".format(outp)  #TODO @mark: also support filenames? and support making directories?
+	# if outp:
+	# 	assert isdir(outp), "argument to -o should be a directory, but '{}' is not".format(outp)  #TODO @mark: also support filenames? and support making directories?
 	try:
 		tmp_pth = join(outp, '{0:s}.tmp'.format(filepth))
 		if encrypt:
