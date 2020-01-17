@@ -13,6 +13,11 @@ Project status
 
 I do use the project myself, but the openssl version compatibility incompatibility revealed there are more weird edge cases than I anticipated, and I didn't build backwards compatibility into the project enough. Plus, Rust is probably a way better language for this than Python. It might be usable, but don't expect major new features.
 
+Maybe just try gpg instead?::
+
+    gpg -c testfile.jpg && shred testfile.jpg
+    gpg testfile.jpg.gpg
+
 Version warning
 ---------------------------------------
 
