@@ -8,6 +8,10 @@ This code allows one to easily encrypt and decrypt files symmetrically using ope
 * Uses ``sha256`` key stretching (with <0.1s) to make brute force prohibitively expensive.
 * Uses ``sha256`` checksum to check file integrity.
 
+Project status
+---------------------------------------
+
+I do use the project myself, but the openssl version compatibility incompatibility revealed there are more weird edge cases than I anticipated, and I didn't build backwards compatibility into the project enough. Plus, Rust is probably a way better language for this than Python. It might be usable, but don't expect major new features.
 
 Version warning
 ---------------------------------------
